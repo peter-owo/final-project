@@ -80,7 +80,8 @@ export class GameScene {
     this.buildMaze();
     this.buildActors();
     this.resize();
-    this.clock = new THREE.Clock();
+    this.lastFrame = performance.now();
+    this.elapsed = 0;
     this.animate = this.animate.bind(this);
     requestAnimationFrame(this.animate);
   }
@@ -187,7 +188,7 @@ export class GameScene {
   }
 
   render(dt) {
-    const time = this.clock.elapsedTime;
+    const time = this.elapsed;
     this.actorTransform(this.game.player, this.playerGroup, 0.42, time);
     this.playerBody.rotation.z = HEADINGS[this.game.player.direction] || 0;
     this.playerBody.scale.y = 0.95 + 0.05 * Math.sin(time * 15);
@@ -216,7 +217,10 @@ export class GameScene {
   }
 
   animate() {
-    const dt = Math.min(this.clock.getDelta(), 0.05);
+    const now = performance.now();
+    const dt = Math.min((now - this.lastFrame) / 1000, 0.05);
+    this.lastFrame = now;
+    this.elapsed += dt;
     this.game.update(dt);
     this.render(dt);
     requestAnimationFrame(this.animate);
