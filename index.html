@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#080914" />
+    <title>CUBE-MAN | 六面迷宮</title>
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand"><span class="brand-icon">◕</span><span>CUBE<span class="brand-yellow">-MAN</span></span></div>
+        <div class="topbar-right"><span class="topbar-caption">六面迷宮挑戰</span><button id="sound-button" class="icon-button" aria-label="切換音效" title="切換音效">♪</button><button id="pause-button" class="icon-button" aria-label="暫停遊戲" title="暫停 / 繼續">Ⅱ</button></div>
+      </header>
+
+      <main class="layout">
+        <section class="game-shell" aria-label="3D 遊戲畫面">
+          <div id="game-view"></div>
+          <div class="view-top"><span class="eyebrow">LEVEL 01 / THE CUBE</span><span id="face-label" class="face-chip">● 前面 FRONT</span></div>
+          <div class="view-bottom"><span id="status-message">準備出發</span><span class="keys-hint">↑ ↓ ← →　移動　 ·　 P　暫停</span></div>
+          <div id="overlay" class="overlay">
+            <div class="overlay-card">
+              <div class="hero-icon" aria-hidden="true">◕</div>
+              <p class="eyebrow">A CLASSIC CHASE IN SIX DIMENSIONS</p>
+              <h1 id="overlay-title">迷宮，<br><span>不只一面。</span></h1>
+              <p id="overlay-description">沿著立方體六個表面移動，吃光所有豆子。走到邊緣就能轉到下一面，小心鬼魂也會跟過來！</p>
+              <button id="start-button" class="primary-button">開始遊戲 <span>→</span></button>
+              <div class="overlay-keys"><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><span>方向鍵操控</span></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="sidebar">
+          <section class="panel score-panel">
+            <div class="panel-label">SCORE <span>得分</span></div>
+            <div id="score" class="score-value">000000</div>
+            <div class="score-row"><span>剩餘豆子</span><strong id="remaining">000</strong></div>
+            <div class="score-row"><span>最佳紀錄</span><strong id="best-score">000000</strong></div>
+            <div class="lives-row"><span>生命</span><div id="lives" aria-label="剩餘生命"></div></div>
+          </section>
+
+          <section class="panel map-panel">
+            <div class="panel-label">CUBE MAP <span>六面展開圖</span></div>
+            <div id="mini-map" class="cube-net" aria-label="六面迷宮地圖"></div>
+            <p class="panel-note">亮框代表目前所在表面 · 小點代表剩餘豆子</p>
+          </section>
+
+          <section class="panel items-panel">
+            <div class="panel-label">POWER UPS <span>道具狀態</span></div>
+            <div class="item-row"><div class="item-symbol power-symbol"></div><div><strong>能量球</strong><small>吃掉鬼魂</small></div><span id="power-timer" class="timer">—</span></div>
+            <div class="item-row"><div class="item-symbol shield-symbol"></div><div><strong>護盾</strong><small>抵擋一次碰撞</small></div><span id="shield-status" class="timer">—</span></div>
+            <div class="item-row"><div class="item-symbol speed-symbol"></div><div><strong>加速</strong><small>移動速度提升</small></div><span id="speed-timer" class="timer">—</span></div>
+          </section>
+
+          <section class="panel legend-panel"><div class="panel-label">GHOSTS <span>敵人情報</span></div><div class="ghost-row"><i class="ghost-dot red"></i>追蹤鬼 <small>直追你的位置</small></div><div class="ghost-row"><i class="ghost-dot pink"></i>伏擊鬼 <small>提前堵截路線</small></div><div class="ghost-row"><i class="ghost-dot cyan"></i>穿牆鬼 <small>偶爾穿過一格牆</small></div></section>
+        </aside>
+      </main>
+      <footer>INSPIRED BY THE ARCADE CLASSIC <span>·</span> 3D CUBE MAZE</footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
