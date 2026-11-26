@@ -2,6 +2,10 @@
 
 受經典 Pac-Man 啟發的 3D 網頁遊戲。迷宮分布在立方體六個表面，玩家與鬼魂都能從邊緣走到相鄰面。
 
+## 線上遊玩
+
+GitHub Pages 部署完成後，直接在瀏覽器開啟 <https://peter-owo.github.io/final-project/> 即可遊玩，不需要安裝遊戲。第一次部署時，請到 GitHub 專案的 **Settings → Pages**，將 **Build and deployment → Source** 設為 **GitHub Actions**。之後每次推送到 `main` 分支都會自動更新網頁。
+
 ## 執行
 
 需要 Node.js 20.19 以上版本。
@@ -11,7 +15,7 @@ npm install
 npm run dev
 ```
 
-開啟終端機顯示的本機網址。正式版可用 `npm run build` 產生到 `dist/`。
+開啟終端機顯示的本機網址。正式版可用 `npm run build` 產生到 `dist/`；GitHub Pages 專用版本使用 `npm run build:pages`。
 
 ## 玩法
 
