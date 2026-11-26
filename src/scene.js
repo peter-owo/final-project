@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { FACE_ORDER, FACES, HALF, SIZE, cellKey } from './maze.js';
+import { GHOST_TYPES } from './ghost-game.js';
 
 const CUBE_RADIUS = HALF + 0.5;
 const v3 = values => new THREE.Vector3(...values);
@@ -26,7 +27,7 @@ function pacmanShape() {
   return new THREE.ExtrudeGeometry(shape, { depth: 0.18, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.035, bevelSegments: 2, curveSegments: 24 });
 }
 
-function makeGhost(color) {
+function makeGhost(color, id) {
   const group = new THREE.Group();
   const material = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.28, roughness: 0.35 });
   const dome = new THREE.Mesh(new THREE.SphereGeometry(0.39, 20, 12, 0, Math.PI * 2, 0, Math.PI / 2), material);
@@ -48,6 +49,15 @@ function makeGhost(color) {
     iris.position.set(x + 0.025, 0.05, 0.45);
     group.add(eye, iris);
   }
+  const markerShape = { red: new THREE.SphereGeometry(0.11, 10, 8), pink: new THREE.OctahedronGeometry(0.14), cyan: new THREE.CylinderGeometry(0.14, 0.14, 0.08, 6), purple: new THREE.ConeGeometry(0.14, 0.24, 3) }[id];
+  const marker = new THREE.Mesh(markerShape, new THREE.MeshBasicMaterial({ color: 0xffffff }));
+  marker.position.set(0, 0.46, 0.16);
+  group.add(marker);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(0.53, 0.045, 8, 30), new THREE.MeshBasicMaterial({ color: 0xffdc40 }));
+  ring.position.z = -0.24;
+  ring.visible = false;
+  group.add(ring);
+  group.userData.ring = ring;
   return group;
 }
 
@@ -77,6 +87,7 @@ export class GameScene {
     this.scene.add(blue);
     this.starField();
     this.itemMeshes = new Map();
+    this.trapMeshes = new Map();
     this.buildMaze();
     this.buildActors();
     this.resize();
@@ -110,10 +121,10 @@ export class GameScene {
     const dotMaterial = new THREE.MeshBasicMaterial({ color: 0xffdca3 });
     const powerGeometry = new THREE.SphereGeometry(0.31, 16, 12);
     const powerMaterial = new THREE.MeshStandardMaterial({ color: 0xffd75b, emissive: 0xffa800, emissiveIntensity: 1.7 });
-    const shieldGeometry = new THREE.CylinderGeometry(0.33, 0.33, 0.13, 6);
-    const shieldMaterial = new THREE.MeshStandardMaterial({ color: 0x67f6f0, emissive: 0x0ec5dd, emissiveIntensity: 1 });
-    const speedGeometry = new THREE.ConeGeometry(0.37, 0.55, 3);
-    const speedMaterial = new THREE.MeshStandardMaterial({ color: 0xff8be1, emissive: 0xd921af, emissiveIntensity: 1 });
+    const coreGeometry = new THREE.OctahedronGeometry(0.34);
+    const coreMaterial = new THREE.MeshStandardMaterial({ color: 0x75f9f0, emissive: 0x18c8cf, emissiveIntensity: 1.2 });
+    const exitGeometry = new THREE.TorusGeometry(0.37, 0.09, 8, 24);
+    const exitMaterial = new THREE.MeshBasicMaterial({ color: 0x9dff81 });
 
     for (const face of FACE_ORDER) {
       const faceGroup = new THREE.Group();
@@ -142,11 +153,9 @@ export class GameScene {
       } else if (cell.item) {
         let mesh;
         if (cell.item === 'power') mesh = new THREE.Mesh(powerGeometry, powerMaterial);
-        else if (cell.item === 'shield') {
-          mesh = new THREE.Mesh(shieldGeometry, shieldMaterial);
-          mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), v3(FACES[cell.face].n));
-        } else if (cell.item === 'speed') {
-          mesh = new THREE.Mesh(speedGeometry, speedMaterial);
+        else if (cell.item === 'core') mesh = new THREE.Mesh(coreGeometry, coreMaterial);
+        else if (cell.item === 'exit') {
+          mesh = new THREE.Mesh(exitGeometry, exitMaterial);
           mesh.quaternion.copy(QUATERNIONS[cell.face]);
         } else mesh = new THREE.Mesh(dotGeometry, dotMaterial);
         mesh.position.copy(positionOf(cell, cell.item === 'dot' ? 0.18 : 0.4));
@@ -161,16 +170,34 @@ export class GameScene {
     this.playerBody = new THREE.Mesh(pacmanShape(), new THREE.MeshStandardMaterial({ color: 0xffd43b, emissive: 0xffb400, emissiveIntensity: 0.38, metalness: 0.12, roughness: 0.38 }));
     this.playerGroup.add(this.playerBody);
     this.scene.add(this.playerGroup);
-    this.ghostGroups = [0xff5359, 0xff7fd4, 0x61eaff].map(color => {
-      const group = makeGhost(color);
+    this.ghostGroups = Object.fromEntries(Object.values(GHOST_TYPES).map(type => {
+      const group = makeGhost(type.color, type.id);
       this.scene.add(group);
-      return group;
-    });
-    this.ghostColors = [0xff5359, 0xff7fd4, 0x61eaff];
+      return [type.id, group];
+    }));
   }
 
   syncItems() {
-    for (const [id, mesh] of this.itemMeshes) mesh.visible = Boolean(this.game.cells.get(id)?.item);
+    for (const [id, mesh] of this.itemMeshes) {
+      const item = this.game.cells.get(id)?.item;
+      mesh.visible = item === 'exit' ? this.game.exitReady : Boolean(item);
+    }
+  }
+
+  syncTraps() {
+    const present = new Set(this.game.traps.map(cellKey));
+    for (const [id, mesh] of this.trapMeshes) {
+      if (!present.has(id)) { this.scene.remove(mesh); mesh.geometry.dispose(); mesh.material.dispose(); this.trapMeshes.delete(id); }
+    }
+    for (const trap of this.game.traps) {
+      const id = cellKey(trap);
+      if (this.trapMeshes.has(id)) continue;
+      const mesh = new THREE.Mesh(new THREE.TorusGeometry(0.32, 0.045, 8, 18), new THREE.MeshBasicMaterial({ color: 0xff87dc }));
+      mesh.position.copy(positionOf(trap, 0.22));
+      mesh.quaternion.copy(QUATERNIONS[trap.face]);
+      this.scene.add(mesh);
+      this.trapMeshes.set(id, mesh);
+    }
   }
 
   actorTransform(actor, group, height, time) {
@@ -193,24 +220,32 @@ export class GameScene {
     this.playerBody.rotation.z = HEADINGS[this.game.player.direction] || 0;
     this.playerBody.scale.y = 0.95 + 0.05 * Math.sin(time * 15);
     this.playerGroup.visible = this.game.player.invulnerable <= 0 || Math.floor(time * 8) % 2 === 0;
-    this.game.ghosts.forEach((ghost, index) => {
-      const group = this.ghostGroups[index];
+    for (const group of Object.values(this.ghostGroups)) group.visible = false;
+    this.game.ghosts.forEach(ghost => {
+      const group = this.ghostGroups[ghost.id];
       group.visible = ghost.inactive <= 0;
       this.actorTransform(ghost, group, 0.45, time);
       group.scale.setScalar(this.game.powerTime > 0 ? 0.92 : 1);
+      group.userData.ring.visible = ghost === this.game.activeGhost && ghost.inactive <= 0;
       const material = group.children[0].material;
-      material.color.setHex(this.game.powerTime > 0 ? 0x4b69ff : this.ghostColors[index]);
-      material.emissive.setHex(this.game.powerTime > 0 ? 0x203fd1 : this.ghostColors[index]);
+      material.color.set(this.game.powerTime > 0 ? 0x4b69ff : GHOST_TYPES[ghost.id].color);
+      material.emissive.set(this.game.powerTime > 0 ? 0x203fd1 : GHOST_TYPES[ghost.id].color);
       material.emissiveIntensity = this.game.powerTime > 0 ? 0.45 : 0.28;
     });
+    this.syncTraps();
 
-    const face = this.game.player.motion?.to.face || this.game.player.face;
+    const follow = this.game.activeGhost || this.game.player;
+    const face = follow.motion?.to.face || follow.face;
     const { n, u, v } = FACES[face];
     const normal = v3(n), right = v3(u), up = v3(v).negate();
     const cameraTarget = normal.clone().multiplyScalar(2.2);
     const cameraPosition = normal.clone().multiplyScalar(19).addScaledVector(right, 3.2).addScaledVector(up, 3.8);
     const damping = 1 - Math.exp(-dt * 3.3);
-    this.camera.position.lerp(cameraPosition, damping);
+    const currentDirection = this.camera.position.clone().normalize();
+    const targetDirection = cameraPosition.clone().normalize();
+    const rotation = new THREE.Quaternion().setFromUnitVectors(currentDirection, targetDirection);
+    currentDirection.applyQuaternion(new THREE.Quaternion().slerp(rotation, damping));
+    this.camera.position.copy(currentDirection.multiplyScalar(THREE.MathUtils.lerp(this.camera.position.length(), cameraPosition.length(), damping)));
     this.camera.up.lerp(up, damping).normalize();
     this.camera.lookAt(cameraTarget);
     this.renderer.render(this.scene, this.camera);

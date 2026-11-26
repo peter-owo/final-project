@@ -47,8 +47,6 @@ export function createMaze() {
   const clear = (face, x, y) => put(face, x, y, null);
   clear('front', 5, 5);
   for (const [face, x, y] of [['front', 5, 1], ['right', 5, 9], ['back', 5, 1], ['left', 5, 9], ['top', 5, 5], ['bottom', 5, 5]]) put(face, x, y, 'power');
-  for (const [face, x, y] of [['front', 1, 5], ['back', 9, 5], ['top', 1, 5]]) put(face, x, y, 'shield');
-  for (const [face, x, y] of [['right', 9, 5], ['left', 1, 5], ['bottom', 9, 5]]) put(face, x, y, 'speed');
   for (const [face, x, y] of [['right', 5, 5], ['back', 5, 5], ['left', 5, 5]]) clear(face, x, y);
   return cells;
 }
