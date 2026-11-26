@@ -4,7 +4,7 @@
 
 ## 線上遊玩
 
-GitHub Pages 部署完成後，直接在瀏覽器開啟 <https://peter-owo.github.io/final-project/> 即可遊玩，不需要安裝遊戲。第一次部署時，請到 GitHub 專案的 **Settings → Pages**，將 **Build and deployment → Source** 設為 **GitHub Actions**。之後每次推送到 `main` 分支都會自動更新網頁。
+直接在瀏覽器開啟 <https://peter-owo.github.io/final-project/> 即可遊玩，不需要安裝遊戲。GitHub Pages 已設為 GitHub Actions 部署；之後每次推送到 `main` 分支都會自動更新網頁。
 
 ## 執行
 
