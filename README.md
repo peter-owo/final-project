@@ -2,6 +2,8 @@
 
 受經典 Pac-Man 啟發的 3D 網頁遊戲。迷宮分布在立方體六個表面，玩家與鬼魂都能從邊緣走到相鄰面。
 
+目前可玩的網站是由玩家操控小精靈的版本。改為「玩家選三隻鬼魂、切換操控並追捕 AI 小精靈」的新版規劃見 [`ghost_hunt_plan.md`](./ghost_hunt_plan.md)，尚未實作到網站。
+
 ## 線上遊玩
 
 直接在瀏覽器開啟 <https://peter-owo.github.io/final-project/> 即可遊玩，不需要安裝遊戲。GitHub Pages 已設為 GitHub Actions 部署；之後每次推送到 `main` 分支都會自動更新網頁。
@@ -34,4 +36,4 @@ npm run dev
 - `src/main.js`：操作、音效和介面。
 - `src/style.css`：街機風格畫面。
 
-原始企劃見 [`plan.md`](./plan.md)。
+原始企劃見 [`plan.md`](./plan.md)；新版企劃見 [`ghost_hunt_plan.md`](./ghost_hunt_plan.md)。
